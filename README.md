@@ -155,6 +155,56 @@ var socket = io('ws://yourdomain.com', {transports: ['websocket']});
 	c.Close()
 ```
 
+```go
+    //connect to server, you can use your own transport settings
+    c, err := gosocketio.Dial(
+        "wss://www.demo.com/socket.io/?EIO=3&transport=websocket",
+        &transport.WebsocketTransport{
+            PingInterval:   10 * time.Second,
+            PingTimeout:    transport.WsDefaultPingTimeout,
+            ReceiveTimeout: transport.WsDefaultReceiveTimeout,
+            SendTimeout:    transport.WsDefaultSendTimeout,
+            BufferSize:     transport.WsDefaultBufferSize,
+        },
+    )
+
+	//do something, handlers and functions are same as server ones
+    if err != nil {
+           t.Fatal(err)
+    }
+    err = c.On(gosocketio.OnDisconnection, func(h *gosocketio.Channel) {
+            log.Fatal("Disconnected")
+            })
+    if err != nil {
+        t.Fatal(err)
+    }
+    err = c.On(gosocketio.OnConnection, func(h *gosocketio.Channel) {
+            fmt.Println("Connected")
+                c.Emit("sub.symbol", map[string]string{
+                    "symbol": "ETH_USDT",
+                })
+            })
+    if err != nil {
+        t.Fatal(err)
+    }
+    err = c.On("message", func(h *gosocketio.Channel, args interface{}) {
+                fmt.Println("--- Got message: ", args)
+            })
+    if err != nil {
+        t.Fatal(err)
+    }
+    err = c.On("push.symbol", func(h *gosocketio.Channel, args interface{}) {
+                fmt.Println("--- Got push.symbol message: ", args)
+            })
+    if err != nil {
+        t.Fatal(err)
+    }
+    select {}
+
+	//close connection
+	c.Close()
+```
+
 ### Roadmap
 
 1. Tests
